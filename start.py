@@ -1322,9 +1322,9 @@ class HttpFlood(Thread):
         Tools.safe_close(s)
 
     def BOMB(self):
-        assert self._proxies, \
-            'This method requires proxies. ' \
-            'Without proxies you can use github.com/codesenberg/bombardier'
+        # assert self._proxies, \
+         #  'This method requires proxies. ' \
+          #  'Without proxies you can use github.com/codesenberg/bombardier'
 
         while True:
             proxy = randchoice(self._proxies)
