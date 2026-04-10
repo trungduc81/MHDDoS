@@ -1639,6 +1639,7 @@ class ToolsConsole:
 
 
 def handleProxyList(con, proxy_li, proxy_ty, url=None):
+    return None 
     if proxy_ty not in {4, 5, 1, 0, 6}:
         exit("Socks Type Not Found [4, 5, 1, 0, 6]")
     if proxy_ty == 6:
@@ -1758,6 +1759,7 @@ if __name__ == '__main__':
                         "RPC (Request Pre Connection) is higher than 100")
 
                 proxies = handleProxyList(con, proxy_li, proxy_ty, url)
+                proxies = None 
                 for thread_id in range(threads):
                     HttpFlood(thread_id, url, host, method, rpc, event,
                               uagents, referers, proxies).start()
