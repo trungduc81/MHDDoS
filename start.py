@@ -483,7 +483,7 @@ class Layer4(Thread):
         while self._synevent.is_set():
             self.SENT_FLOOD()
 
-   def open_connection(self,
+    def open_connection(self,
                         conn_type=AF_INET,
                         sock_type=SOCK_STREAM,
                         proto_type=IPPROTO_TCP):
